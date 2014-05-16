@@ -5,7 +5,8 @@ Hop_runner.dart is a CLI runtime for distributable reusable tasks for [Dart](htt
 ### Usage
 
 #### Basic Usage
-    Call a pub package designed to run from the [hop_runner](https://github.com/toolr/hop_runner.dart) commandline.
+Call a pub package designed to run from the [hop_runner](https://github.com/toolr/hop_runner.dart) commandline.
+    
     ```bash
     $ hop [<hop-options>] <pub-package-task-library> [<args>]
     ```
@@ -17,32 +18,32 @@ Hop_runner.dart is a CLI runtime for distributable reusable tasks for [Dart](htt
     ```
 
 ### Install
-    Simply copy and paste this into your terminal.
+Simply copy and paste this into your terminal.
     ```bash
     $ ...[to be determined]
     ```
 
 ### Example Pub Tasks
 #### Dart Version Task
-    Determines whether your installed version is up-to-date with sdk version.
+Determines whether your installed version is up-to-date with sdk version.
     ```bash
     $ hop version [--channel [dev | stable]]
     ```
 
 #### Update Dart
-    Update dart sdk.
+Update dart sdk.
     ```bash
     $ hop update [--channel [dev | stable]]
     ```
 
-    #### Schedule Task
-    Schedule a pub task.
+#### Schedule Task
+Schedule a pub task.
     ```bash
     $ hop sched --every <n>[m|h|d] | <pub-task>
     ```
 
 #### Spawn Template
-    Spawn a project based on given template.
+Spawn a project based on given template.
     ```bash
     $ hop web-app-startr --name foo
     ```
@@ -50,10 +51,10 @@ Hop_runner.dart is a CLI runtime for distributable reusable tasks for [Dart](htt
 ### Create A Pub Task
 
 #### Create From Scratch
-    See wiki for how to create a pub task from scratch.
+See wiki for how to create a pub task from scratch.
 
 #### Spawn Pub Task Template
-    Span a pub task from a template
+Span a pub task from a template
     ```bash
     $ hop pub-task-startr --name <pub-task-name>
     ```
