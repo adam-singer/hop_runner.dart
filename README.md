@@ -46,3 +46,14 @@ Spawn a project based on given template.
 ```bash
 $ hop web-app-startr --name foo
 ```
+
+# Create A Pub Task
+
+## Create From Scratch
+See wiki for how to create a pub task from scratch.
+
+## Spawn Pub Task Template
+Span a pub task from a template
+```bash
+$ hop pub-task-startr --name <pub-task-name>
+```
