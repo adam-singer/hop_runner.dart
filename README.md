@@ -13,9 +13,9 @@ $ hop [<hop-options>] <task-library> [<args>]
 `<task-library>` can be a pub repository, git repository or local path.
 
 ## Chained Usage
-You can also pipe task calls.
+You can also chain task calls separated by comma.
 ```bash
-$ hop <task-lib1> | <task-lib2> | <task-lib3> | ... | <task-libn>
+$ hop <task-lib> [<args>], <task-lib> [<args>], ...
 ```
 
 ## Autocompletion
@@ -43,7 +43,7 @@ $ hop update [--channel [dev | stable]]
 ## Schedule Task
 Schedule a pub task.
 ```bash
-$ hop sched --every <n>[m|h|d] | <pub-task>
+$ hop sched --every <n>[m|h|d], <task-lib> [<args>]
 ```
 
 ## Spawn Template
