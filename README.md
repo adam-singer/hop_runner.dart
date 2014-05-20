@@ -7,15 +7,15 @@ Hop_runner.dart is a CLI runtime for distributable reusable tasks for [Dart](htt
 ## Basic Usage
 Call a pub package designed to run from the [hop_runner](https://github.com/toolr/hop_runner.dart) commandline.
 ```bash
-$ hop [<hop-options>] <task-library> [<args>]
+$ hop [<hop-options>] <task-lib> [<args>]
 ```
 
-`<task-library>` can be a pub repository, git repository or local path.
+`<task-lib>` can be a pub repository, git repository or local path.
 
 ## Chained Usage
 You can also chain task calls separated by comma.
 ```bash
-$ hop <task-lib> [<args>], <task-lib> [<args>], ...
+$ hop [<hop-options>] <task-lib> [<args>], <task-lib> [<args>], ...
 ```
 
 ## Autocompletion
