@@ -10,7 +10,7 @@ Call a pub package designed to run from the [hop_runner](https://github.com/tool
 $ hop [<hop-options>] <task-lib> [<args>]
 ```
 
-`<task-lib>` can be a pub repository, git repository or local path.
+`<task-lib>` can be a pub repository, hosted or git repository or local path.
 
 ## Chained Usage
 You can also chain task calls separated by comma.
