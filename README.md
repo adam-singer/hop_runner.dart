@@ -11,6 +11,11 @@ $ hop [<hop-options>] <task-lib> [<args>]
 ```
 
 `<task-lib>` can be a pub repository, hosted or git repository or local path.
+```
+<task-lib>: [<pub-task-options>] [<name>, <url>, <path>]
+   -t, --type: [pub (default), hosted, git, path]
+   -n, --name: Repository name.
+```
 
 ## Chained Usage
 You can also chain task calls separated by comma.
