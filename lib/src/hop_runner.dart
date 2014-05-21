@@ -41,7 +41,7 @@ class HopRunner {
           // Call pub get to get repositories.
           processor.get(offline:offline)
           .then((ProcessResult result){
-
+            
             log.fine(result.stdout);
             hb.run(taskList).then((_){
               temp.delete(recursive:true)

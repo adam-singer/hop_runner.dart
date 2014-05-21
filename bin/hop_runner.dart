@@ -45,6 +45,7 @@ bool _parseArgs(List<String> args) {
 
   if(args.isEmpty) {
     print(_getUsage());
+    parseResult = false;
   } else {
     parser.options.forEach((name, option){
       
@@ -62,8 +63,10 @@ bool _parseArgs(List<String> args) {
 
     var results = parser.parse(hopargs);
 
-    if(results["help"]) print(_getUsage());
-    else {
+    if(results["help"]){ 
+      print(_getUsage());
+      parseResult = false;
+    } else {
       log.level = results["loglevel"] == "fine" ? Level.FINE : Level.INFO;
       offline = results["offline"];
       log.fine("offline: $offline");
@@ -85,7 +88,13 @@ bool _parseArgs(List<String> args) {
         log.fine(task.toJson());
 
         taskList.add(task);
+
       });
+
+      if(taskList.isEmpty) {
+        print(_getUsage());
+        parseResult = false;
+      }
     }
 
   }
