@@ -14,4 +14,4 @@ done
 
 dir=$(dirname "$PRG")
 
-dart $dir/bin/hop_runner.dart "$@"
+dart $dir/bin/hopsnapshot "$@"
