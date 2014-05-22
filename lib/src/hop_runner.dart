@@ -28,6 +28,7 @@ class HopRunner {
       
         // Build hop_runner.dart file.
         var hb = new HopBuilder(temp);
+        hb.log = log;
 
         hb.build(taskList)
         .then((File hop_runnerfile){
@@ -41,8 +42,7 @@ class HopRunner {
           // Call pub get to get repositories.
           processor.get(offline:offline)
           .then((ProcessResult result){
-            
-            log.fine(result.stdout);
+
             hb.run(taskList).then((_){
               temp.delete(recursive:true)
               .then((_) => log.fine("done."));
@@ -57,6 +57,7 @@ class HopRunner {
 class HopBuilder {
   Directory root;
   HopBuilder(this.root);
+  Logger log;
   
   Future<File> build(List taskList) {
     var sb = new StringBuffer();
@@ -102,16 +103,24 @@ class HopBuilder {
   
   Future run(List taskList) {
     var completer = new Completer();
-    var i = 0;
-    Future.forEach(taskList, (Task task){
+    
+    taskList.forEach((Task task){
       task.run(root)
-      .then((ProcessResult result){
-        stdout.write(result.stdout);
-        i = i + 1;
-        if(i==taskList.length) completer.complete(true);
+      .then((Process process){
+
+        process.exitCode.then((exitCode) {
+          log.fine("${task.name} exitCode: $exitCode");
+          completer.complete(true);
+        });
+
+        stdin.pipe(process.stdin);
+        process.stdout.listen((data){
+          stdout.write(new String.fromCharCodes(data));
+        });
       });
     });
-
+    
+    
     return completer.future;
   }
 }

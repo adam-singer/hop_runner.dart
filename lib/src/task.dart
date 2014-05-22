@@ -51,9 +51,9 @@ abstract class Task {
     return "import 'package:$name/$name.dart' as $name;\n";
   }
   
-  Future<ProcessResult> run(Directory dir) {
+  Future<Process> run(Directory dir) {
     var processArgs = ['tool/hop_runner.dart', name, args];
-    return Process.run('dart', processArgs, workingDirectory:dir.path);
+    return Process.start('dart', processArgs, workingDirectory:dir.path);
   }
 
   Map toJson() {
