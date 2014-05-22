@@ -6,9 +6,9 @@ abstract class Task {
   String args;
   
   Task(this.name, this.source, this.args);
-  
+    
   factory Task.from(String name, String type, var source, String args) {
-
+    args = args.trim();
     switch(type) {
       case 'pub':
         break;
@@ -52,7 +52,8 @@ abstract class Task {
   }
   
   Future<Process> run(Directory dir) {
-    var processArgs = ['tool/hop_runner.dart', name, args];
+    var processArgs = ['tool/hop_runner.dart', name];
+    if(args.length > 0) processArgs.add(args);
     return Process.start('dart', processArgs, workingDirectory:dir.path);
   }
 

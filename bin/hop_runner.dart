@@ -80,15 +80,18 @@ bool _parseArgs(List<String> args) {
         taskarg = taskarg.trim();
         log.fine("taskarg: $taskarg");
         var taskResults = taskParser.parse(taskarg.split(' '));
+        var rest = taskResults.rest;
+        log.fine("rest: $rest");
         var type = taskResults["type"];
         var name = taskResults["name"];
-        var source = taskResults.rest.first;
+        var source = rest.first;
+        var args = rest.length > 1 ? rest.sublist(1).join(" ") : "";
+        
         log.fine("type: $type");
         log.fine("name: $name");
         log.fine("source: $source");
-
-        // TODO parse task arguments.
-        var task = new Task.from(name, type, source, "");
+                
+        var task = new Task.from(name, type, source, args);
         if(task==null) {
           print("Task was not properly parsed.\n");
         } else {
