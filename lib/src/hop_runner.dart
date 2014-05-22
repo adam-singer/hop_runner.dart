@@ -3,7 +3,8 @@ part of hop_runner;
 class HopRunner {
   List taskList;
   Logger log;
-  bool offline;
+  bool offline = false;
+  bool debug = false;
   
   HopRunner(this.taskList);
 
@@ -42,10 +43,13 @@ class HopRunner {
           // Call pub get to get repositories.
           processor.get(offline:offline)
           .then((ProcessResult result){
-
+            stderr.write(result.stderr);
             hb.run(taskList).then((_){
-              temp.delete(recursive:true)
-              .then((_) => log.fine("done."));
+              if(!debug){
+                temp.delete(recursive:true)
+                .then((_) => log.fine("done."));
+              } else log.fine("done.");
+              
             });
           });
         });
@@ -102,24 +106,31 @@ class HopBuilder {
   }
   
   Future run(List taskList) {
+    /*
+      This is hacky but needed because Future.forEach completes before process.exitCode.
+    */
+    var length = taskList.length;
     var completer = new Completer();
-    
-    taskList.forEach((Task task){
+    var i = 0;
+    Future.forEach(taskList, (Task task){
       task.run(root)
       .then((Process process){
-
-        process.exitCode.then((exitCode) {
+        process.exitCode.then((exitCode){
           log.fine("${task.name} exitCode: $exitCode");
-          completer.complete(true);
+          i = i + 1;
+          if(i == length) completer.complete(true);
         });
-
+        
         stdin.pipe(process.stdin);
         process.stdout.listen((data){
           stdout.write(new String.fromCharCodes(data));
         });
+        
+        process.stderr.listen((data){
+          stdout.write(new String.fromCharCodes(data));
+        });
       });
     });
-    
     
     return completer.future;
   }

@@ -7,6 +7,7 @@ final parser = new ArgParser();
 final taskParser = new ArgParser();
 final log = new Logger("hop");
 bool offline;
+bool debug;
 var taskList = [];
 
 void main(List<String> args) {
@@ -17,6 +18,7 @@ void main(List<String> args) {
 
   parser.addOption("loglevel", defaultsTo:'info', allowed:['info','fine'], abbr:'l');
   parser.addFlag("offline", abbr:'o', help: "Use cached packages instead of accessing the network.");
+  parser.addFlag("debug", abbr:'d', help: "Does not delete temporary directory.");
   parser.addFlag("help", help: "Displays this message.");
 
   taskParser.addOption("type", defaultsTo:'pub', allowed:['pub','path','git','hosted'], abbr:'t');
@@ -35,6 +37,7 @@ void _hop() {
   var hop_runner = new HopRunner(taskList);
   hop_runner.log = log;
   hop_runner.offline = offline;
+  hop_runner.debug = debug;
   hop_runner.run();
 }
 
@@ -69,6 +72,7 @@ bool _parseArgs(List<String> args) {
     } else {
       log.level = results["loglevel"] == "fine" ? Level.FINE : Level.INFO;
       offline = results["offline"];
+      debug = results["debug"];
       log.fine("offline: $offline");
       var taskargsets = taskargs.join(" ").split(',');
       log.fine("taskargs: $taskargsets");
@@ -85,10 +89,13 @@ bool _parseArgs(List<String> args) {
 
         // TODO parse task arguments.
         var task = new Task.from(name, type, source, "");
-        log.fine(task.toJson());
-
-        taskList.add(task);
-
+        if(task==null) {
+          print("Task was not properly parsed.\n");
+        } else {
+          log.fine(task.toJson());
+          taskList.add(task);
+        }
+  
       });
 
       if(taskList.isEmpty) {
