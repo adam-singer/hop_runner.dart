@@ -1,0 +1,10 @@
+        // Check if input is a valid git url
+        RegExp _regexp = new RegExp('((git|ssh|https?)|(git@[\w.]+))(:(//)?)([\w.@\:/-~]+)(.git)(/)?');
+
+        if (_regexp.hasMatch(source)) {
+          // Valid git source
+          new GitTask(name, source, args);
+        } else {
+          throw new Exception("$source appears not be a valid git url.");
+        }
+

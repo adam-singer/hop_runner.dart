@@ -1,5 +1,7 @@
 name: hop_runner
 dependencies:
-   args: any
-   hop: any
-   logging: any
+  args: any
+  hop: any
+  logging: any
+dev_dependencies:
+  unittest: any
