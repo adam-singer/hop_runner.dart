@@ -52,9 +52,10 @@ abstract class Task {
   }
   
   Future<Process> run(Directory dir) {
+    
     var processArgs = ['tool/hop_runner.dart', name];
     if(args.length > 0) processArgs.add(args);
-    return Process.start('dart', processArgs, workingDirectory:dir.path);
+    return Process.start('dart', processArgs, workingDirectory:dir.absolute.path);
   }
 
   Map toJson() {
