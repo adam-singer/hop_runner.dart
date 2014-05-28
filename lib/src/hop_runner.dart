@@ -44,12 +44,12 @@ class HopRunner {
           processor.get(offline:offline)
           .then((ProcessResult result){
             stderr.write(result.stderr);
+            
             hb.run(taskList).then((_){
               if(!debug){
                 temp.delete(recursive:true)
                 .then((_) => log.fine("done."));
               } else log.fine("done.");
-              
             });
           });
         });
@@ -62,6 +62,8 @@ class HopBuilder {
   Directory root;
   HopBuilder(this.root);
   Logger log;
+  final stdinHandler = new StdinHandler();
+  StreamSubscription streamSubscription;
   
   Future<File> build(List taskList) {
     var sb = new StringBuffer();
@@ -105,33 +107,74 @@ class HopBuilder {
     return sb.toString();
   }
   
-  Future run(List taskList) {
-    /*
-      This is hacky but needed because Future.forEach completes before process.exitCode.
-    */
-    var length = taskList.length;
+  Future _handle(Process process) {
     var completer = new Completer();
-    var i = 0;
-    Future.forEach(taskList, (Task task){
-      task.run(root)
-      .then((Process process){
-        process.exitCode.then((exitCode){
-          log.fine("${task.name} exitCode: $exitCode");
-          i = i + 1;
-          if(i == length) completer.complete(true);
-        });
+    var sb = new StringBuffer();
+    process.exitCode.then((exitCode){
+      log.fine("Task exitCode: $exitCode");
+      completer.complete(sb.toString());
+    });
+    
+    stdinHandler.stdin = process.stdin;
+    
+    process.stdout.listen((data){
+      var output = new String.fromCharCodes(data);
+      sb.write(output);
+      stdout.write(output);
+    });
         
-        stdin.pipe(process.stdin);
-        process.stdout.listen((data){
-          stdout.write(new String.fromCharCodes(data));
-        });
-        
-        process.stderr.listen((data){
-          stdout.write(new String.fromCharCodes(data));
-        });
-      });
+    process.stderr.listen((data){
+      stdout.write(new String.fromCharCodes(data));
     });
     
     return completer.future;
+  }
+  
+  Future _runTaskList(Iterator iterator, {String previousOutput:""}) {
+    var completer = new Completer();
+    if(iterator.moveNext()) {
+      Task task = iterator.current;
+      log.fine("Running task: ${task.name}");
+      task.args = previousOutput;
+      return task.run(root)
+      .then(_handle)
+      .then((String output){
+        log.fine("Completed task: ${task.name}");
+        var nextInput = output.trim();
+        return _runTaskList(iterator, previousOutput:nextInput);
+      });
+    } else {
+      log.fine("Commpleted all tasks.");
+      log.fine("Remove subscription to stdin.");
+      var ftr = streamSubscription.cancel();
+      if(ftr!=null) {
+        ftr.whenComplete(() => completer.complete(true));
+      } else completer.complete(true);
+    }
+    return completer.future;
+  }
+  
+  Future run(List taskList) {
+    var completer = new Completer();
+    streamSubscription = stdin.listen(stdinHandler.handleInput);
+    Task firstTask = taskList.first;
+    String firstTaskArgs = firstTask.args;
+    var iterator = taskList.iterator;
+    _runTaskList(iterator, previousOutput:firstTaskArgs)
+    .then((_){
+      log.fine("Completed from _runTaskList.");
+      completer.complete(true);
+    });
+    
+    return completer.future;
+  }
+}
+
+
+
+class StdinHandler {
+  IOSink stdin;
+  void handleInput(List<int> data) {
+    stdin.add(data);
   }
 }
