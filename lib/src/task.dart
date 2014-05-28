@@ -70,9 +70,8 @@ abstract class Task {
 }
 
 class DirectoryTask extends Task {
-  // FIXME: analyzer returns a warning with `args':
-  // "The argument type 'List' cannot be assigned to the parameter type 'String'
-  DirectoryTask(String name, Directory source, List args) : super(name, source,
+
+  DirectoryTask(String name, Directory source, String args) : super(name, source,
       args);
 
 

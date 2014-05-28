@@ -15,13 +15,7 @@ class PubspecBuilder {
       .then((File pubspec){
         var sb = new StringBuffer();
         sb.write(_base());
-        taskList.forEach((Task task) {
-          // Processing each dependency
-          task.dependencies.forEach((Dependency dependency) {
-            // Calling here Dependency.toString() method
-            sb.write(dependency);
-          });
-        });
+        sb.write(_generateDependencies());
 
         return pubspec.writeAsString(sb.toString());
       });
@@ -32,7 +26,20 @@ class PubspecBuilder {
     return "name: $name\ndependencies:\n   hop: any\n";
   }
 
-  String _generateDependencies() {}
+  String _generateDependencies() {
+    var sb = new StringBuffer();
+
+    taskList.forEach((Task task) {
+      // Processing each dependency
+      task.dependencies.forEach((Dependency dependency) {
+        // Calling here Dependency.toString() method
+        sb.write(dependency);
+      });
+    });
+
+    return sb.toString();
+  }
+  
 }
 
 class PubProcessor {
