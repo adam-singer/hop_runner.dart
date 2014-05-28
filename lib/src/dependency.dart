@@ -1,7 +1,7 @@
 part of hop_runner;
 
 class Dependency {
-  final String TAB = "  ";
+  final String TAB = "   ";
   // Name of the dependency
   final String name;
   // Type of dependency (path, hosted, pub, git)

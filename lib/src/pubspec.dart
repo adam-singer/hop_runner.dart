@@ -29,7 +29,7 @@ class PubspecBuilder {
   }
 
   String _base(){
-    return "name: $name\ndependencies:\n   hop: any";
+    return "name: $name\ndependencies:\n   hop: any\n";
   }
 
   String _generateDependencies() {}
