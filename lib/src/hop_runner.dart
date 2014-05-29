@@ -1,13 +1,40 @@
 part of hop_runner;
 
 class HopRunner {
-  List taskList;
+  /// [List] of [Task] items to run.
+  List<Task> taskList;
+  
+  /**
+   * Logger whose level is set by the commandline --loglevel option.
+   * [Logger.FINE] and [Logger.INFO] currently supported.
+   */
   Logger log;
+  
+  /**
+   * Set by the commandline --offline flag.
+   * If `true`, cached packages are used.
+   * If `false`, packages pulled from the network.
+   */
   bool offline = false;
+  
+  /**
+   * Set by the commandline --debug flag.
+   * If `true`, the temporary directory is not deleted after running.
+   * If `false`, the temporary directory is deleted after running.
+   */
   bool debug = false;
   
   HopRunner(this.taskList);
 
+  /**
+   * Main entry method for [HopRunner].
+   * 1. Creates the temporary directory.
+   * 2. Using [PubspecBuilder], creates the pubspec.yaml file in the temp directory.
+   * 3. Using [HopBuilder], creates a `tool/hop_runner.dart` file in the temp directory.
+   * 4. Runs `pub get` to acquire pub task packages.
+   * 5. For each [Task] in [taskList], it runs `tool/hop_runner.dart`.
+   * 6. Deletes the temperatory directory if [debug] is `false`.
+   */
   void run(){
     log.fine("offline: $offline");
 
@@ -22,7 +49,7 @@ class HopRunner {
 
       // Build pubspec in temporary directory.
       var pubspecBuilder = new PubspecBuilder(name, taskList, temp);
-      
+            
       pubspecBuilder.build().then((File pubspec){
 
         log.fine("Built $pubspec");
@@ -45,8 +72,11 @@ class HopRunner {
           .then((ProcessResult result){
             stderr.write(result.stderr);
             
+            // Run each Task.
             hb.run(taskList).then((_){
               if(!debug){
+              
+                // Delete the temporary directory.
                 temp.delete(recursive:true)
                 .then((_) => log.fine("done."));
               } else log.fine("done.");
@@ -59,12 +89,25 @@ class HopRunner {
 }
 
 class HopBuilder {
+
+  /// The directory in which the [HopRunner] builds and runs each [Task].
   Directory root;
+  
   HopBuilder(this.root);
+  
+  /**
+   * Logger whose level is set by the commandline --loglevel option.
+   * [Logger.FINE] and [Logger.INFO] currently supported.
+   */
   Logger log;
+  
+  /// Needed to pipe [Process.stdin] for each [Task].
   final stdinHandler = new StdinHandler();
+  
+  /// Needed to pipe [Process.stdin] for each [Task].
   StreamSubscription streamSubscription;
   
+  /// Builds the `tool/hop_runner.dart` file.
   Future<File> build(List taskList) {
     var sb = new StringBuffer();
     sb.write(_base(taskList));
@@ -82,6 +125,7 @@ class HopBuilder {
     });
   }
   
+  // Builds the import section of the `tool/hop_runner.dart` file.
   String _base(List taskList) {
     var sb = new StringBuffer();
     sb.write("library hop_runner;\n");
@@ -93,6 +137,7 @@ class HopBuilder {
     return sb.toString();
   }
   
+  // Builds the body section of the `tool/hop_runner.dart` file.
   String _body(List taskList) {
     var sb = new StringBuffer();
     taskList.forEach((Task task) => sb.write(task.call));
@@ -100,6 +145,7 @@ class HopBuilder {
     return sb.toString();
   }
   
+  // Builds the ending section of the `tool/hop_runner.dart` file.
   String _end() {
     var sb = new StringBuffer();
     sb.write("runHop(args);\n");
@@ -107,6 +153,10 @@ class HopBuilder {
     return sb.toString();
   }
   
+  /**
+   * Handles the process for the running [Task].
+   * Assigns [Process.stdin] to [stdinHandler] and writes [Process.stdout] to [Stdout].
+   */
   Future _handle(Process process) {
     var completer = new Completer();
     var sb = new StringBuffer();
@@ -130,6 +180,11 @@ class HopBuilder {
     return completer.future;
   }
   
+  /**
+   * Iterates through each [Task] in [taskList].
+   * Assigns output of previous task to input of a subsequent task, if exists.
+   * The subsequent task does not start until its previous task completes.
+   */
   Future _runTaskList(Iterator iterator, {String previousOutput:""}) {
     var completer = new Completer();
     if(iterator.moveNext()) {
@@ -154,11 +209,18 @@ class HopBuilder {
     return completer.future;
   }
   
+  /// Processes each [Task] in [taskList].
   Future run(List taskList) {
     var completer = new Completer();
+    
+    // Set the stdin listener for use in _runTaskList.
     streamSubscription = stdin.listen(stdinHandler.handleInput);
+    
+    // Acquire first task's arguments to provide as input.
     Task firstTask = taskList.first;
     String firstTaskArgs = firstTask.args;
+    
+    // Iterate through taskList to process each Task.
     var iterator = taskList.iterator;
     _runTaskList(iterator, previousOutput:firstTaskArgs)
     .then((_){
@@ -170,10 +232,13 @@ class HopBuilder {
   }
 }
 
-
-
+/// [Process.stdin] handler to capture input from [Task].
 class StdinHandler {
+
+  /// [Process.stdin] returns an [IOSink].
   IOSink stdin;
+  
+  /// Function for handling [Stdin.listen].
   void handleInput(List<int> data) {
     stdin.add(data);
   }

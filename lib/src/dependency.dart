@@ -12,7 +12,7 @@ class Dependency {
 
   Dependency(this.name, this.type, this.data);
 
-  // Named constructors?
+  // TODO: Named constructors
   Dependency.path() {}
   Dependency.git() {}
   Dependency.hosted() {}
