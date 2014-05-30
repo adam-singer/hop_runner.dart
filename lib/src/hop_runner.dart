@@ -132,7 +132,15 @@ class HopBuilder {
     sb.write("import 'dart:io';\n");
     sb.write("import 'package:hop/hop.dart';\n");
     sb.write("import 'package:args/args.dart';\n");
-    taskList.forEach((Task task) => sb.write(task.import));
+
+    // Keep inventory of imported task libraries to prevent duplicates.
+    var importedTasks = [];
+    taskList.forEach((Task task){
+      if(!importedTasks.contains(task.name)) {
+        sb.write(task.import);
+        importedTasks.add(task.name);
+      }      
+    });
     sb.write("void main(List<String> args) {\n");
     return sb.toString();
   }
@@ -140,7 +148,15 @@ class HopBuilder {
   // Builds the body section of the `tool/hop_runner.dart` file.
   String _body(List taskList) {
     var sb = new StringBuffer();
-    taskList.forEach((Task task) => sb.write(task.call));
+
+    // Keep inventory of called tasks to prevent duplicates.
+    var calledTasks = [];
+    taskList.forEach((Task task) {
+      if(!calledTasks.contains(task.name)) {
+        sb.write(task.call);
+        calledTasks.add(task.name);
+      }
+    });
     
     return sb.toString();
   }

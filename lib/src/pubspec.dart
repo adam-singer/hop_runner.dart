@@ -41,12 +41,17 @@ class PubspecBuilder {
   String _generateDependencies() {
     var sb = new StringBuffer();
 
+    // Track built tasks to make sure there are no duplicate dependencies.
+    var builtTasks = [];
     taskList.forEach((Task task) {
-      // Processing each dependency
-      task.dependencies.forEach((Dependency dependency) {
-        // Calling here Dependency.toString() method
-        sb.write(dependency);
-      });
+      if (!builtTasks.contains(task.name)) {
+        // Processing each dependency
+        task.dependencies.forEach((Dependency dependency) {
+          // Calling here Dependency.toString() method
+          sb.write(dependency);
+        });
+        builtTasks.add(task.name);
+      }
     });
 
     return sb.toString();
@@ -65,5 +70,4 @@ class PubProcessor {
     if(offline) args.add('--offline');
     return Process.run('pub',args,workingDirectory:dir.path);
   }
-
 }
