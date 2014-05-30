@@ -74,7 +74,12 @@ void _hop() {
   hop_runner.log = log;
   hop_runner.offline = offline;
   hop_runner.debug = debug;
+  var stopwatch = new Stopwatch()..start();
   hop_runner.run();
+  stopwatch.stop();
+  var elapsedSeconds = stopwatch.elapsedMilliseconds/1000;
+  log.fine("Time to process: $elapsedSeconds");
+  
 }
 
 /// Parses main and [Task] specific arguments from the commandline.
