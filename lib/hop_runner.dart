@@ -2,6 +2,7 @@ library hop_runner;
 
 import 'dart:io';
 import 'dart:async';
+import 'dart:convert';
 import 'package:logging/logging.dart';
 
 part 'src/dependency.dart';

@@ -49,6 +49,7 @@ class HopRunner {
 
       // Build pubspec in temporary directory.
       var pubspecBuilder = new PubspecBuilder(name, taskList, temp);
+      pubspecBuilder.log = log;
             
       pubspecBuilder.build().then((File pubspec){
 
@@ -64,12 +65,14 @@ class HopRunner {
           log.fine("Built $hop_runnerfile");
           
           var processor = new PubProcessor(temp);
+          processor.log = log;
 
           log.fine("Pulling dependencies...");
           
           // Call pub get to get repositories.
           processor.get(offline:offline)
           .then((ProcessResult result){
+            log.fine(result.stdout);
             stderr.write(result.stderr);
             
             // Run each Task.

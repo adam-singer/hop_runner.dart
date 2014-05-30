@@ -11,6 +11,12 @@ class PubspecBuilder {
   Directory dir;
   PubspecBuilder(this.name, this.taskList, this.dir);
 
+  /**
+   * Logger whose level is set by the commandline --loglevel option.
+   * [Logger.FINE] and [Logger.INFO] currently supported.
+   */
+  Logger log;
+
   /// Build the pubspec.yaml file.
   Future<File> build(){
     return dir.exists()
@@ -62,12 +68,69 @@ class PubspecBuilder {
 class PubProcessor {
   /// Directory where pubspec.yaml is built from which `pub get` is called.
   Directory dir;
+  
+  /// Hop Pub Package url.
+  final String hopUrl = "http://pub.dartlang.org/api/packages/hop";
+  
+  /// Hop Pub Cache Base Uri.
+  final String hopCacheUriBase = "${Platform.environment['HOME']}/.pub-cache/hosted/pub.dartlang.org/hop-";
+  
+  /**
+   * Logger whose level is set by the commandline --loglevel option.
+   * [Logger.FINE] and [Logger.INFO] currently supported.
+   */
+  Logger log;
+  
   PubProcessor(this.dir);
 
   /// Processes `pub get`
   Future<ProcessResult> get({bool offline:false}) {
+    var completer = new Completer();
     var args = ['get'];
-    if(offline) args.add('--offline');
-    return Process.run('pub',args,workingDirectory:dir.path);
+    if(offline) {
+      args.add('--offline');
+      log.fine("pub args: $args");
+      Process.run('pub',args,workingDirectory:dir.path).then((ProcessResult result) => completer.complete(result));
+    } else {
+      _hopUptodate().then((bool hopUptodate){
+        log.fine("hopUptodate: $hopUptodate");
+        if(hopUptodate) args.add('--offline');
+        log.fine("pub args: $args");
+        Process.run('pub',args,workingDirectory:dir.path).then((ProcessResult result) => completer.complete(result));
+      });
+    }
+
+    return completer.future;
+  }
+  
+  Future<bool> _hopUptodate() {
+    var completer = new Completer();
+    
+    var client = new HttpClient();
+    try {
+      client.getUrl(Uri.parse(hopUrl))
+        .then((HttpClientRequest request) {
+          request.headers.contentType = new ContentType("application", "json", charset: "utf-8");
+          return request.close();
+        })
+        .then((HttpClientResponse response){
+          if(response.statusCode == 200) {
+            UTF8.decodeStream(response).then((String responseText){
+              var pubMap = JSON.decode(responseText);
+              String version = pubMap["latest"]["version"];
+              log.fine("Latest Hop version: $version");
+              var hopPubDir = new Directory(hopCacheUriBase+version).absolute;
+              bool hopPubDirExists = hopPubDir.existsSync();
+              log.fine("hopPubDir: $hopPubDir, exists: $hopPubDirExists");
+              completer.complete(hopPubDirExists);
+            });
+          }
+        });
+     } catch(e) {
+       log.fine("Failed to call hop package api.");
+       completer.complete(false);
+     }
+    
+    return completer.future;
   }
 }
