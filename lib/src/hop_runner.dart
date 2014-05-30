@@ -24,6 +24,9 @@ class HopRunner {
    */
   bool debug = false;
   
+  /// [Stopwatch] to time process.
+  var stopwatch = new Stopwatch();
+  
   HopRunner(this.taskList);
 
   /**
@@ -37,7 +40,7 @@ class HopRunner {
    */
   void run(){
     log.fine("offline: $offline");
-
+    stopwatch.start();
     var dir = new Directory('.');
 
     // Run task in temporary directory.
@@ -77,6 +80,10 @@ class HopRunner {
             
             // Run each Task.
             hb.run(taskList).then((_){
+              stopwatch.stop();
+              var elapsedSeconds = stopwatch.elapsedMilliseconds/1000;
+              log.fine("Time to process: $elapsedSeconds sec.");
+              
               if(!debug){
               
                 // Delete the temporary directory.
