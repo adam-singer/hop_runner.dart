@@ -9,9 +9,15 @@ final parser = new ArgParser();
 /// The commandline arguments parser for [Task] specific arguments.
 final taskParser = new ArgParser();
 
+final logLevelMap = {
+  "info":  Level.INFO,
+  "fine":  Level.FINE,
+  "finer": Level.FINER,
+  "finest": Level.FINEST
+};
+
 /**
  * Logger whose level is set by the commandline --loglevel option.
- * [Logger.FINE] and [Logger.INFO] currently supported.
  */
 final log = new Logger("hop");
 
@@ -43,7 +49,7 @@ void main(List<String> args) {
   log.level = Level.INFO;
 
   // Allow setting the Logger.level to FINE or INFO.
-  parser.addOption("loglevel", defaultsTo:'info', allowed:['info','fine'], abbr:'l');
+  parser.addOption("loglevel", defaultsTo:'info', allowed:logLevelMap.keys, abbr:'l');
   
   // Determines whether task and hop packages are pulled from local cache or from accessing the network.
   parser.addFlag("offline", abbr:'o', help: "Use cached packages instead of accessing the network.");
@@ -126,7 +132,7 @@ bool _parseArgs(List<String> args) {
     } else {
     
       // Handle the main arguments.
-      log.level = results["loglevel"] == "fine" ? Level.FINE : Level.INFO;
+      log.level = logLevelMap[results["loglevel"]];
       offline = results["offline"];
       debug = results["debug"];
       log.fine("offline: $offline");

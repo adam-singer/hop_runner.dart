@@ -51,30 +51,20 @@ class HopRunner {
       log.fine("Created $temp $name");
 
       // Build pubspec in temporary directory.
-      var pubspecBuilder = new PubspecBuilder(name, taskList, temp);
-      pubspecBuilder.log = log;
+      var pubProcessor = new PubProcessor(name, taskList, temp);
+      pubProcessor.log = log;
+      pubProcessor.prepare().then((_){
+        var pubspecBuilder = new PubspecBuilder(name, taskList, temp);
+        pubspecBuilder.build().then((File pubspecYaml){
+          log.fine("Built ${pubspecYaml.absolute.path}.");
+          var hb = new HopBuilder(temp);
+          hb.log = log;
+
+          hb.build(taskList)
+          .then((File hop_runnerfile){
+            log.fine("Built ${hop_runnerfile.absolute.path}.");
             
-      pubspecBuilder.build().then((File pubspec){
-
-        log.fine("Built $pubspec");
-      
-        // Build hop_runner.dart file.
-        var hb = new HopBuilder(temp);
-        hb.log = log;
-
-        hb.build(taskList)
-        .then((File hop_runnerfile){
-
-          log.fine("Built $hop_runnerfile");
-          
-          var processor = new PubProcessor(temp);
-          processor.log = log;
-
-          log.fine("Pulling dependencies...");
-          
-          // Call pub get to get repositories.
-          processor.get(offline:offline)
-          .then((ProcessResult result){
+            ProcessResult result = Process.runSync('pub',['get','--offline'],workingDirectory:temp.path);
             log.fine(result.stdout);
             stderr.write(result.stderr);
             

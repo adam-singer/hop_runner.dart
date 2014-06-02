@@ -9,8 +9,11 @@ abstract class Task {
   
   /// Arguments parsed and passed from the commandline when the Task is built.
   String args;
+  
+  /// The task type parsed from the commandline: [pub (default), hosted, git, path].
+  String type;
 
-  Task(this.name, this.source, this.args);
+  Task(this.name, this.source, this.args, this.type);
 
   /// Factory constructor to return a [Task] based on the type.
   factory Task.from(String name, String type, var source, String args) {
@@ -87,7 +90,7 @@ abstract class Task {
 /// Implementation of the directory type pub package [Task].
 class DirectoryTask extends Task {
 
-  DirectoryTask(String name, Directory source, String args) : super(name, source, args);
+  DirectoryTask(String name, Directory source, String args) : super(name, source, args, 'path');
 
   /// Implementation of [Task.dependencies]
   List<Dependency> _deriveDependencies() {

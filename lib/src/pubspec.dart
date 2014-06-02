@@ -1,5 +1,6 @@
 part of hop_runner;
 
+/// Pubspec.yaml file builder.
 class PubspecBuilder {
   /// The name of the pub package, typically the name of the temporary directory.
   String name;
@@ -9,11 +10,11 @@ class PubspecBuilder {
   
   /// The directory that serves as the root for the pubspec.yaml file.
   Directory dir;
+  
   PubspecBuilder(this.name, this.taskList, this.dir);
 
   /**
    * Logger whose level is set by the commandline --loglevel option.
-   * [Logger.FINE] and [Logger.INFO] currently supported.
    */
   Logger log;
 
@@ -44,6 +45,7 @@ class PubspecBuilder {
     return "name: $name\ndependencies:\n   hop: any\n";
   }
 
+  /// Generate dependencies for each parsed task.
   String _generateDependencies() {
     var sb = new StringBuffer();
 
@@ -65,50 +67,152 @@ class PubspecBuilder {
   
 }
 
+/// Pub dependency handler.
 class PubProcessor {
+  /// The name of the pub package, typically the name of the temporary directory.
+  String name;
+  
   /// Directory where pubspec.yaml is built from which `pub get` is called.
   Directory dir;
   
+  /// List of [Task]s parsed from the commandline.
+  List taskList;
+
   /// Hop Pub Package url.
-  final String hopUrl = "http://pub.dartlang.org/api/packages/hop";
+  final String pubUrl = "http://pub.dartlang.org/api/packages/";
   
-  /// Hop Pub Cache Base Uri.
-  final String hopCacheUriBase = "${Platform.environment['HOME']}/.pub-cache/hosted/pub.dartlang.org/hop-";
-  
+  /// Pub Cache Base Uri.
+  final String pubCacheUriBase = "${Platform.environment['HOME']}/.pub-cache/hosted/pub.dartlang.org/";
+
   /**
    * Logger whose level is set by the commandline --loglevel option.
-   * [Logger.FINE] and [Logger.INFO] currently supported.
    */
   Logger log;
   
-  PubProcessor(this.dir);
-
-  /// Processes `pub get`
-  Future<ProcessResult> get({bool offline:false}) {
-    var completer = new Completer();
-    var args = ['get'];
-    if(offline) {
-      args.add('--offline');
-      log.fine("pub args: $args");
-      Process.run('pub',args,workingDirectory:dir.path).then((ProcessResult result) => completer.complete(result));
-    } else {
-      _hopUptodate().then((bool hopUptodate){
-        log.fine("hopUptodate: $hopUptodate");
-        if(hopUptodate) args.add('--offline');
-        log.fine("pub args: $args");
-        Process.run('pub',args,workingDirectory:dir.path).then((ProcessResult result) => completer.complete(result));
-      });
-    }
-
-    return completer.future;
+  /// Getter for git/hosted packages.
+  List<Task> get nonPub => _nonPub();
+  List<Task> _nonPub() {
+    return taskList.where((Task task) => ['hosted','git'].contains(task.type)).toList();
   }
   
-  Future<bool> _hopUptodate() {
+  /// Getter for pub packages.
+  List<String> get pub => _pub();
+  List<String> _pub() {
+    return ['hop']..addAll(taskList.where((Task task) => task.type == "pub").map((Task task) => task.name));
+  }
+  
+  PubProcessor(this.name, this.taskList, this.dir);
+
+  /// Prepares pub package dependencies.
+  Future prepare({bool offline:false}) {
+    
+    var completer = new Completer();
+    
+    log.finer("PubProcessor.prepare name: $name");
+    log.finer("PubProcessor.prepare dir: $dir");
+    log.finer("PubProcessor.prepare taskList: ${taskList.map((task) => task.name).toList()}");
+    var prepareFutureList = [];
+    
+    // If offline is `false`, verify latest version of packages and dependencies in pub_cache.
+    if(!offline) {
+      
+      log.finer("PubProcessor.prepare: $offline");
+      
+      // Confirm two lists, one for pub and one for git/hosted packages, respectively.
+      log.finer("PubProcessor.prepare nonPub: ${nonPub.map((Task task) => task.name).toList()}");
+      log.finer("PubProcessor.prepare pub: $pub");
+      
+      Future.wait([
+        _prepareNonPubList(),
+        _preparePubList()
+      ]).then((_){
+        log.finer("PubProcessor.prepare: completed _prepareNonPubList, _preparePubList");
+        completer.complete(true);
+      });      
+    } else {
+      completer.complete(true);
+    }
+    
+    return completer.future;
+  }
+
+  /// Prepares package dependencies for packages hosted outside pub.dartlang.org.
+  Future _prepareNonPubList() {
+    var completer = new Completer();
+    if (!nonPub.isEmpty) {
+        // Prepare git/hosted packages and dependencies.
+        var pubspecBuilder = new PubspecBuilder('githosted', nonPub, dir);
+        pubspecBuilder.log = log;
+
+        // Build pubspec.yaml of types git and hosted.
+        pubspecBuilder.build().then((File pubspecFile){
+          log.fine("Built 'githosted' pubspecFile: $pubspecFile");
+
+          // Run `pub get` to download dependencies.
+          return Process.run('pub',['get'], workingDirectory:dir.path).then((ProcessResult result){
+            log.fine(result.stdout);
+            stderr.write(result.stderr);
+            
+            // Clean files/directories.
+            
+            dir.list(recursive:true).toList().then((List<FileSystemEntity> fileList){
+              fileList.forEach((FileSystemEntity fse) => fse.deleteSync());
+              completer.complete(true);
+            });
+          });
+        });
+      } else completer.complete(true);
+    return completer.future;
+  }
+
+  /// Prepares pub package dependencies packages hosted on pub.dartlang.org.
+  Future _preparePubList() {
+    return Future.wait(pub.map((String pubName) => _preparePub(pubName)));
+  }
+
+  /// Prepares pub package dependencies for given [pubName].
+  Future _preparePub(String pubName) {
+    log.fine("PubProcessor._preparePub, pubName: $pubName");
+    var completer = new Completer();
+    
+    // Acquire latest version of pubName.
+    _version(pubName).then((String version){
+      log.fine("PubProcessor._preparePub, version: $version");
+
+      if(version!="") {
+      
+        // Determine if latest pub cache folder exists.
+        _pubFolderExists(pubName, version).then((bool pubFolderExists){
+
+          log.fine("PubProcessor._preparePub, pubFolderExists: $pubFolderExists");
+          if(!pubFolderExists) {
+
+            // `pub cache add [pubName]`
+            ProcessResult result = Process.runSync('pub', ['cache', 'add', pubName]);
+            log.fine(result.stdout);
+            stderr.write(result.stderr);
+          }
+
+          // Update pub dependencies.
+          _update(pubName, version).then((ProcessResult result) {
+            log.fine(result.stdout);
+            stderr.write(result.stderr);
+            completer.complete(true);
+          });
+        });
+      }
+    });
+        
+    return completer.future;
+  }
+
+  /// Acquires latest version of pub package.
+  Future<String> _version(String pubName) {
     var completer = new Completer();
     
     var client = new HttpClient();
     try {
-      client.getUrl(Uri.parse(hopUrl))
+      client.getUrl(Uri.parse(pubUrl+pubName))
         .then((HttpClientRequest request) {
           request.headers.contentType = new ContentType("application", "json", charset: "utf-8");
           return request.close();
@@ -118,19 +222,29 @@ class PubProcessor {
             UTF8.decodeStream(response).then((String responseText){
               var pubMap = JSON.decode(responseText);
               String version = pubMap["latest"]["version"];
-              log.fine("Latest Hop version: $version");
-              var hopPubDir = new Directory(hopCacheUriBase+version).absolute;
-              bool hopPubDirExists = hopPubDir.existsSync();
-              log.fine("hopPubDir: $hopPubDir, exists: $hopPubDirExists");
-              completer.complete(hopPubDirExists);
+              log.fine("Latest $pubName version: $version");
+              completer.complete(version);
             });
           }
         });
      } catch(e) {
-       log.fine("Failed to call hop package api.");
-       completer.complete(false);
+       log.fine("Failed to call $pubName package api.");
+       completer.complete("");
      }
     
     return completer.future;
+  }
+  
+  /// Determines existence of pub package version folder in .pub_cache.
+  Future<bool> _pubFolderExists(String pubName, String version) {
+    var dir = new Directory(pubCacheUriBase+pubName+"-$version");
+    return dir.exists();
+  }
+  
+  /// Updates pub dependencies
+  Future<ProcessResult> _update(String pubName, String version) {
+    // Assumes dir exists.
+    var dir = new Directory(pubCacheUriBase+pubName+"-$version");
+    return Process.run('pub',['get'],workingDirectory:dir.path);
   }
 }
