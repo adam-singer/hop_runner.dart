@@ -18,7 +18,7 @@ $ hop [<hop-options>] <task-lib> [<args>]
 ```
 
 ## Chained Usage
-You can also chain task calls separated by comma.
+You can also chain task calls separated by comma.  Output from prior task is piped into subsequent task.
 ```bash
 $ hop [<hop-options>] <task-lib> [<args>], <task-lib> [<args>], ...
 ```
