@@ -24,10 +24,10 @@ $ hop [<hop-options>] <task-lib> [<args>], <task-lib> [<args>], ...
 ```
 
 ## Autocompletion
-Hop_runner.dart supports autocompletion.  
+Not currently implemented.  See [#5](https://github.com/toolr/hop_runner.dart/issues/5).
 
 # Install
-Simply copy and paste this into your terminal.
+Simply copy and paste this into your terminal.  See [#4](https://github.com/toolr/hop_runner.dart/issues/4)
 ```bash
 $ ...[to be determined]
 ```
