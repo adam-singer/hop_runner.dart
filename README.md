@@ -29,9 +29,23 @@ $ hop [<hop-options>] <task-lib> [<args>], <task-lib> [<args>], ...
 Not currently implemented.  See [#5](https://github.com/toolr/hop_runner.dart/issues/5).
 
 # Install
-Simply copy and paste this into your terminal.  See [#4](https://github.com/toolr/hop_runner.dart/issues/4)
+Simply copy and paste this into your terminal.
 ```bash
-$ ...[to be determined]
+sudo mkdir /usr/local/hop && cd /usr/local/hop && sudo curl -O https://raw.githubusercontent.com/toolr/hop_runner.dart/master/hop && sudo curl -O https://raw.githubusercontent.com/toolr/hop_runner.dart/master/bin/hopsnapshot && sudo chmod +x hop && sudo printf '\n\n#Added By hop_runner\nexport PATH="/usr/local/hop":$PATH' >> ~/.bash_profile && . ~/.bash_profile && cd ~ && echo "First time running this takes a while..." && hop echo
+```
+
+OR
+
+```bash
+sudo mkdir /usr/local/hop
+cd /usr/local/hop
+sudo curl -O https://raw.githubusercontent.com/toolr/hop_runner.dart/master/hop
+sudo curl -O https://raw.githubusercontent.com/toolr/hop_runner.dart/master/bin/hopsnapshot
+sudo chmod +x hop
+sudo printf '\n\n#Added By hop_runner\nexport PATH="/usr/local/hop":$PATH' >> ~/.bash_profile
+. ~/.bash_profile
+cd ~
+hop echo
 ```
 
 # Example Pub Tasks
