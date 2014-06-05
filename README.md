@@ -33,9 +33,7 @@ Simply copy and paste this into your terminal.
 ```bash
 sudo mkdir /usr/local/hop && cd /usr/local/hop && sudo curl -O https://raw.githubusercontent.com/toolr/hop_runner.dart/master/hop && sudo curl -O https://raw.githubusercontent.com/toolr/hop_runner.dart/master/bin/hopsnapshot && sudo chmod +x hop && sudo printf '\n\n#Added By hop_runner\nexport PATH="/usr/local/hop":$PATH' >> ~/.bash_profile && . ~/.bash_profile && cd ~ && echo "Running: hop echo" && echo "First time takes a while..." && hop echo
 ```
-
 OR
-
 ```bash
 sudo mkdir /usr/local/hop
 cd /usr/local/hop
@@ -49,6 +47,12 @@ hop echo
 ```
 
 # Example Pub Tasks
+
+## Simple Echo
+Simple Hello World Pub Task: [echo](http://pub.dartlang.org/packages/echo)
+```bash
+$ hop echo [args]
+```
 ## Dart Version Task
 Determines whether your installed version is up-to-date with sdk version.
 ```bash
