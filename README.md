@@ -31,7 +31,7 @@ Not currently implemented.  See [#5](https://github.com/toolr/hop_runner.dart/is
 # Install
 Simply copy and paste this into your terminal.
 ```bash
-sudo mkdir /usr/local/hop && cd /usr/local/hop && sudo curl -O https://raw.githubusercontent.com/toolr/hop_runner.dart/master/hop && sudo curl -O https://raw.githubusercontent.com/toolr/hop_runner.dart/master/bin/hopsnapshot && sudo chmod +x hop && sudo printf '\n\n#Added By hop_runner\nexport PATH="/usr/local/hop":$PATH' >> ~/.bash_profile && . ~/.bash_profile && cd ~ && echo "First time running this takes a while..." && hop echo
+sudo mkdir /usr/local/hop && cd /usr/local/hop && sudo curl -O https://raw.githubusercontent.com/toolr/hop_runner.dart/master/hop && sudo curl -O https://raw.githubusercontent.com/toolr/hop_runner.dart/master/bin/hopsnapshot && sudo chmod +x hop && sudo printf '\n\n#Added By hop_runner\nexport PATH="/usr/local/hop":$PATH' >> ~/.bash_profile && . ~/.bash_profile && cd ~ && echo "Running...\n$ hop echo\nFirst time running this takes a while..." && hop echo
 ```
 
 OR
