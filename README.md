@@ -87,3 +87,8 @@ Span a pub task from a template.  *To Be Developed*
 ```bash
 $ hop pub-task-startr --name <pub-task-name>
 ```
+
+# Authors
+
+* Damon Douglas @damondouglas
+* Claudio d'Angelis @claudiodangelis
