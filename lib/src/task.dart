@@ -12,16 +12,20 @@ abstract class Task {
   
   /// The task type parsed from the commandline: [pub (default), hosted, git, path].
   String type;
+  
+  /// The version of the pub package cooresponding to the task.
+  String version;
 
-  Task(this.name, this.source, this.args, this.type);
+  Task(this.name, this.source, this.args, this.type, {this.version:"any"});
 
   /// Factory constructor to return a [Task] based on the type.
-  factory Task.from(String name, String type, var source, String args) {
+  factory Task.from(String name, String type, var source, String args, String version) {
     args = args.trim();
     switch (type) {
     
       // Build a [Task] from a pub package published on pub.dartlang.org.
       case 'pub':
+        return new PubTask(name, args, version:version);
         break;
 
       // Build a [Task] from in a directory pub package.
@@ -43,10 +47,12 @@ abstract class Task {
 
       // Build a [Task] from a pub package from a git repo.
       case 'git':
+        return new GitTask(name, source, args);
         break;
 
       // Build a [Task] from a hosted pub package.
       case 'hosted':
+        return new HostedTask(name, source, args, version);
         break;
     }
   }
@@ -97,5 +103,38 @@ class DirectoryTask extends Task {
     return [new Dependency(name, "path", {
         "path": source.absolute.path
       })];
+  }
+}
+
+/// Implementation of the pub type [Task].
+class PubTask extends Task {
+  
+  PubTask(String name, String args, {String version:"any"}) : super(name, '', args, 'pub', version:version);
+  
+  /// Implementation of [Task.dependencies]
+  List<Dependency> _deriveDependencies() {
+    return [new Dependency(name, "pub", {}, version:version)];
+  }
+}
+
+/// Implementation of the git type [Task].
+class GitTask extends Task {
+  
+  GitTask(String name, Map source, String args) : super(name, source, args, 'git');
+  
+  /// Implementation of [Task.dependencies]
+  List<Dependency> _deriveDependencies() {
+    return [new Dependency(name, "git", source)];
+  }
+}
+
+/// Implementation of the hosted type [Task].
+class HostedTask extends Task {
+  
+  HostedTask(String name, Map source, String args, {String version:"any"}) : super(name, source, args, 'hosted', version:version);
+  
+  /// Implementation of [Task.dependencies]
+  List<Dependency> _deriveDependencies() {
+    return [new Dependency(name, "hosted", source)];
   }
 }
