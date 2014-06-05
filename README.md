@@ -54,25 +54,25 @@ Simple Hello World Pub Task: [echo](http://pub.dartlang.org/packages/echo)
 $ hop echo [args]
 ```
 ## Dart Version Task
-Determines whether your installed version is up-to-date with sdk version.
+Determines whether your installed version is up-to-date with sdk version. *To Be Developed*
 ```bash
 $ hop version [--channel [dev | stable]]
 ```
 
 ## Update Dart
-Update dart sdk.
+Update dart sdk. *To Be Developed*
 ```bash
 $ hop update [--channel [dev | stable]]
 ```
 
 ## Schedule Task
-Schedule a pub task.
+Schedule a pub task. *To Be Developed*
 ```bash
 $ hop sched --every <n>[m|h|d], <task-lib> [<args>]
 ```
 
 ## Spawn Template
-Spawn a project based on given template.
+Spawn a project based on given template. *To Be Developed*
 ```bash
 $ hop web-app-startr --name foo
 ```
@@ -80,10 +80,10 @@ $ hop web-app-startr --name foo
 # Create A Pub Task
 
 ## Create From Scratch
-See wiki for how to create a pub task from scratch.
+See wiki for how to create a pub task from scratch. *To Be Developed*
 
 ## Spawn Pub Task Template
-Span a pub task from a template
+Span a pub task from a template.  *To Be Developed*
 ```bash
 $ hop pub-task-startr --name <pub-task-name>
 ```
