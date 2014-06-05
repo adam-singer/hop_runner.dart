@@ -1,4 +1,3 @@
-import 'dart:io';
 import 'package:args/args.dart';
 import 'package:logging/logging.dart';
 import 'package:hop_runner/hop_runner.dart';
@@ -64,6 +63,12 @@ void main(List<String> args) {
   
   // Task specific option that defines the name of the package if needed.
   taskParser.addOption("name", abbr: 'n');
+  
+  // Task specific option that defines the version.
+  taskParser.addOption("version", defaultsTo:'any', abbr:'v');
+  
+  // Task specific option that defines the reference commit of the git repo.
+  taskParser.addOption("ref", abbr:'r');
 
   log.onRecord.listen((LogRecord record){
     print("${record.loggerName}: ${record.message}");
@@ -158,19 +163,36 @@ bool _parseArgs(List<String> args) {
         
         var type = taskResults["type"];
         var name = taskResults["name"];
+        var version = taskResults["version"];
+        var ref = taskResults["ref"];
         var source = rest.first;
         var args = rest.length > 1 ? rest.sublist(1).join(" ") : "";
         
         log.fine("type: $type");
         log.fine("name: $name");
         log.fine("source: $source");
+        log.fine("version: $version");
+        log.fine("ref: $ref");
+        
+        if (type == "git") {
+          var sourceMap = {"url":source};
+          if(ref!=null) sourceMap["ref"] = ref;
+          source = sourceMap;
+        }
+        
+        if (type == "pub") name = source;
+        
+        if (type == "hosted") {
+          var sourceMap = {"url":source};
+          source = sourceMap;
+        }
         
         // Build [Task] from parsed task specific arguments.
-        var task = new Task.from(name, type, source, args);
+        var task = new Task.from(name, type, source, args, version);
         if(task==null) {
           print("Task was not properly parsed.\n");
         } else {
-          log.fine(task.toJson());
+          log.fine(task.toJson().toString());
           taskList.add(task);
         }
   
@@ -189,5 +211,6 @@ bool _parseArgs(List<String> args) {
 
 /// Get usage information.
 String _getUsage() {
-  return "Usage: hop [<options>] <pub-task> [<pub-task>, ...]\n\n<pub-task>: [<pub-task-options>] [<name>, <url>, <path>]\n   -t, --type: [pub (default), hosted, git, path]\n   -n, --name: Repository name.\n\n${parser.getUsage()}";
+  return 
+  "Usage: hop [<hop-options>] <pub-task> [<pub-task>, ...]\n\n<pub-task>: \n${taskParser.getUsage()}\n\n<hop-options>: \n${parser.getUsage()}";
 }

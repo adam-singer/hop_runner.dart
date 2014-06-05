@@ -141,27 +141,25 @@ class PubProcessor {
     var completer = new Completer();
     if (!nonPub.isEmpty) {
         // Prepare git/hosted packages and dependencies.
-        var pubspecBuilder = new PubspecBuilder('githosted', nonPub, dir);
-        pubspecBuilder.log = log;
+        dir.createTemp().then((Directory temp){
+          var pubspecBuilder = new PubspecBuilder('githosted', nonPub, temp);
+          pubspecBuilder.log = log;
+          
+          // Build pubspec.yaml of types git and hosted.
+          pubspecBuilder.build().then((File pubspecFile){
+            log.fine("Built 'githosted' pubspecFile: $pubspecFile");
 
-        // Build pubspec.yaml of types git and hosted.
-        pubspecBuilder.build().then((File pubspecFile){
-          log.fine("Built 'githosted' pubspecFile: $pubspecFile");
+            // Run `pub get` to download dependencies.
+            return Process.run('pub',['get'], workingDirectory:temp.path).then((ProcessResult result){
+              log.fine(result.stdout);
+              stderr.write(result.stderr);
 
-          // Run `pub get` to download dependencies.
-          return Process.run('pub',['get'], workingDirectory:dir.path).then((ProcessResult result){
-            log.fine(result.stdout);
-            stderr.write(result.stderr);
-            
-            // Clean files/directories.
-            
-            dir.list(recursive:true).toList().then((List<FileSystemEntity> fileList){
-              fileList.forEach((FileSystemEntity fse) => fse.deleteSync());
-              completer.complete(true);
+              // Clean files/directories.
+              temp.delete(recursive:true).then((_) => completer.complete(true));
             });
           });
         });
-      } else completer.complete(true);
+    } else completer.complete(true);
     return completer.future;
   }
 
